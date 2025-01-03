@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽籤系統</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+    <!-- 餐廳名稱 -->
+    <div class="restaurant-name">毛毛股份有限公司</div>
+
+
+    <div class="container">
+        <h1>抽籤系統</h1>
+        <div id="current-number">當前號碼：1</div>
+        <div id="remaining-groups">剩餘組數：尚未計算</div>
+        <div id="my-number">我的號碼：尚未抽取</div>
+        <button onclick="drawNumber()">抽籤</button>
+    </div>
+
+
+    <script>
+        const API_BASE_URL = "http://localhost:3000/api";
+
+
+        // 抽號碼
+        async function drawNumber() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/draw`, { method: "POST" });
+                if (response.ok) {
+                    const data = await response.json();
+                    // 更新號碼和剩餘組數
+                    document.getElementById("my-number").innerText = `我的號碼：${data.userNumber}`;
+                    document.getElementById("remaining-groups").innerText = `剩餘組數：${data.remainingGroups}`;
+                    alert(`您的號碼是：${data.userNumber}`);
+                } else {
+                    const errorData = await response.json();
+                    alert(errorData.message);
+                }
+            } catch (error) {
+                console.error("抽號碼失敗：", error);
+                alert("抽號碼時發生錯誤！");
+            }
+        }
+
+
+        // 定期更新當前號碼和剩餘組數（可選，避免刷新頁面查看狀態）
+        async function updateStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/status`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById("current-number").innerText = `當前號碼：${data.currentNumber}`;
+                    document.getElementById("remaining-groups").innerText = `剩餘組數：${data.remainingGroups}`;
+                }
+            } catch (error) {
+                console.error("更新狀態失敗：", error);
+            }
+        }
+
+
+        // 每 5 秒更新一次狀態
+        setInterval(updateStatus, 5000);
+    </script>
+</body>
+
+
+</html>
